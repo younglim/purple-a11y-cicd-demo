@@ -15,9 +15,6 @@ on:
         description: 'Maximum Number of Concurrent Page Scans'     
         required: true
         default: '10'
-      
-      tags:
-        description: 'Test scenario tags'  
 
 jobs:
   build:
