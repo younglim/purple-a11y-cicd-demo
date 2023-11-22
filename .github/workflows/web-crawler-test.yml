@@ -27,7 +27,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@master
       with:
-        name: GovTechSG/purple-hats
+        repository: GovTechSG/purple-hats
     
     - name: Build and run Docker container
       run: |
