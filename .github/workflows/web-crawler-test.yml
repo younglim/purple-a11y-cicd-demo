@@ -15,7 +15,11 @@ on:
         description: 'Maximum Number of Concurrent Page Scans'     
         required: true
         default: '10'
-
+      A11Y_SCAN_SCREENSHOTS:
+        description: 'Include screenshots (screenshots, none)'     
+        required: true
+        default: 'screenshots'
+        
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,7 +42,7 @@ jobs:
     - name: Run Node CLI command inside the Docker container
       run: |
         # Execute a webisite crawl
-        docker exec purple-hats-container node cli -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -c 2 -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -k "${{ github.actor }}:${{ github.actor }}@users.noreply.github.com" -b chromium || true
+        docker exec purple-hats-container node cli -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -c 2 -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -k "${{ github.actor }}:${{ github.actor }}@users.noreply.github.com" -b chromium || true
        
     - name: Print errors
       run: |
