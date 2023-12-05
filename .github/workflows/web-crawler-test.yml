@@ -7,6 +7,10 @@ on:
         description: 'Website URL'     
         required: true
         default: 'https://'
+      A11Y_SCANNER:
+        description: 'Scanner (website, sitemap)'     
+        required: true
+        default: 'website'
       A11Y_SCAN_MAX_NUM_PAGES:
         description: 'Maximum Number of Pages to Scan'     
         required: true
@@ -42,7 +46,7 @@ jobs:
     - name: Run Node CLI command inside the Docker container
       run: |
         # Execute a webisite crawl
-        docker exec purple-hats-container node cli -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -c 2 -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -k "${{ github.actor }}:${{ github.actor }}@users.noreply.github.com" -b chromium || true
+        docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -k "${{ github.actor }}:${{ github.actor }}@users.noreply.github.com" -b chromium || true
        
     - name: Print errors
       run: |
