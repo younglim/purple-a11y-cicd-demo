@@ -32,7 +32,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@master
       with:
-        repository: GovTechSG/purple-hats
+        repository: GovTechSG/purple-a11y
     
     - name: Build and run Docker container
       run: |
