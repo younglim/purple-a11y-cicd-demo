@@ -23,6 +23,11 @@ on:
         description: 'Include screenshots (screenshots, none)'     
         required: true
         default: 'screenshots'
+      A11Y_SCAN_FOLLOW_ROBOTS:
+        description: 'Crawler adhere to robots.txt (yes, no)'     
+        required: true
+        default: 'no'
+        
         
 jobs:
   build:
@@ -46,7 +51,7 @@ jobs:
     - name: Run Node CLI command inside the Docker container
       run: |
         # Execute a webisite crawl
-        docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -k "${{ github.actor }}:${{ github.actor }}@users.noreply.github.com" -b chromium || true
+        docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "${{ github.actor }}:${{ github.actor }}@users.noreply.github.com" -b chromium || true
        
     - name: Print errors
       run: |
