@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       A11Y_SCAN_URL:
-        description: 'Website URL'     
+        description: 'https://www.amazon.fr/'     
         required: true
-        default: 'https://'
+        default: 'https://www.amazon.fr/'
       A11Y_SCANNER:
         description: 'Scanner (website, sitemap)'     
         required: true
