@@ -28,10 +28,10 @@ on:
         required: true
         default: 'no'
       USERNAME:
-        description: "Enter your name (for telemetry purposes)"
+        description: "Your name (for telemetry purposes)"
         required: false
       EMAIL:
-        description: "Enter your email address (for telemetry purposes)"
+        description: "Email address (for telemetry purposes)"
         required: false
 
 jobs:
