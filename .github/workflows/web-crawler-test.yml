@@ -4,27 +4,27 @@ on:
   workflow_dispatch:
     inputs:
       A11Y_SCAN_URL:
-        description: 'Website URL'     
+        description: 'Website URL'
         required: true
         default: 'https://'
       A11Y_SCANNER:
-        description: 'Scanner (website, sitemap)'     
+        description: 'Scanner (website, sitemap)'
         required: true
         default: 'website'
       A11Y_SCAN_MAX_NUM_PAGES:
-        description: 'Maximum Number of Pages to Scan'     
+        description: 'Maximum Number of Pages to Scan'
         required: true
         default: '10'
       A11Y_SCAN_MAX_CONCURRENCY:
-        description: 'Maximum Number of Concurrent Page Scans'     
+        description: 'Maximum Number of Concurrent Page Scans'
         required: true
         default: '10'
       A11Y_SCAN_SCREENSHOTS:
-        description: 'Include screenshots (screenshots, none)'     
+        description: 'Include screenshots (screenshots, none)'
         required: true
         default: 'screenshots'
       A11Y_SCAN_FOLLOW_ROBOTS:
-        description: 'Crawler adhere to robots.txt (yes, no)'     
+        description: 'Crawler adhere to robots.txt (yes, no)'
         required: true
         default: 'no'
       USERNAME:
@@ -33,77 +33,73 @@ on:
       EMAIL:
         description: "Enter your email address (for telemetry purposes)"
         required: false
-        
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check if EMAIL is valid or empty
-      run: |
-        email="${{ inputs.EMAIL }}"
-        valid_email_regex='^[a-zA-Z0-9.!#$%&*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'
-        status="${{ (if [[ -z "$email" ]]; then echo "Empty" elif [[ $email =~ $valid_email_regex ]]; then echo "Valid" else echo "Invalid"; fi) }}"
+      - name: Check if EMAIL is valid or empty
+        run: |
+          email="${{ inputs.EMAIL }}"
+          valid_email_regex='^[a-zA-Z0-9.!#$%&*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'
+          status="$(if [ -z "$email" ]; then echo "Empty"; elif [[ $email =~ $valid_email_regex ]]; then echo "Valid"; else echo "Invalid"; fi)"
 
-        if [[ "$status" == "Invalid" ]]; then
-          echo "Invalid email provided. Workflow failed."
-          exit 1
-        fi
+          if [[ "$status" == "Invalid" ]]; then
+            echo "Invalid email provided. Workflow failed."
+            exit 1
+          fi
 
-      # Proceed with steps if EMAIL is valid or empty
-    - name: Use EMAIL (if provided) or default
-      run: |
-        # Optionally convert input and actor to uppercase (comment out if not needed)
-        # final_email=$(echo "${{ inputs.EMAIL ?: '' }}" | tr '[a-z]' '[A-Z]')
-        # username=$(echo "${{ inputs.USERNAME ?: '' }}" | tr '[a-z]' '[A-Z]')
+        # Proceed with steps if EMAIL is valid or empty
+      - name: Use EMAIL (if provided) or default
+        run: |
+          final_email="${{ inputs.EMAIL || github.actor }}@users.noreply.github.com"
+          username="${{ inputs.USERNAME || github.actor }}"
 
-        final_email="${{ inputs.EMAIL ?: ${{ github.actor }}@users.noreply.github.com }}"
-        username="${{ inputs.USERNAME ?: ${{ github.actor }} }}"
+          echo "Using EMAIL: $final_email"
+          echo "Using USERNAME: $username"
+          # Use $final_email and $username in subsequent steps
 
-        echo "Using EMAIL: $final_email"
-        echo "Using USERNAME: $username"
-        # Use $final_email and $username in subsequent steps
-
-    - name: Checkout code
-      uses: actions/checkout@master
-      with:
-        repository: GovTechSG/purple-a11y
-    
-    - name: Build and run Docker container
-      run: |
-        # Build your Docker image (replace 'purple-hats' and 'Dockerfile' with your image name and Dockerfile path)
-        docker build -t purple-hats .
-        # Run the Docker container (adjust any options as needed)
-        docker run -dit --name purple-hats-container purple-hats
-      # Ensure the Docker container is running before running the next step
-      continue-on-error: true
-
-    - name: Start accessibility scan in Docker container
-      run: |
-        # Execute a webisite crawl
-        docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "$username:$final_email" -b chromium || true
-       
-    - name: Print errors
-      run: |
-        docker exec purple-hats-container cat errors.txt || true
+      - name: Checkout code
+        uses: actions/checkout@master
+        with:
+          repository: GovTechSG/purple-a11y
       
-    - name: Print logs
-      run: |
-        docker exec purple-hats-container cat logs/*/*.txt || true
-    - name: Copy Results from Docker Container
-      run: docker cp purple-hats-container:/app/results ./results
-
-    - name: Zip Results
-      run: zip -r results.zip ./results
-
-    - name: Upload Zip File
-      uses: actions/upload-artifact@v2
-      with:
-        name: results
-        path: results.zip
-          
-    - name: Cleanup Docker container
-      run: |
-        # Stop and remove the Docker container
-        docker stop purple-hats-container
-        docker rm purple-hats-container
+      - name: Build and run Docker container
+        run: |
+          # Build your Docker image (replace 'purple-hats' and 'Dockerfile' with your image name and Dockerfile path)
+          docker build -t purple-hats .
+          # Run the Docker container (adjust any options as needed)
+          docker run -dit --name purple-hats-container purple-hats
+        # Ensure the Docker container is running before running the next step
+        continue-on-error: true
+  
+      - name: Start accessibility scan in Docker container
+        run: |
+          # Execute a webisite crawl
+          docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "$username:$final_email" -b chromium || true
+         
+      - name: Print errors
+        run: |
+          docker exec purple-hats-container cat errors.txt || true
+        
+      - name: Print logs
+        run: |
+          docker exec purple-hats-container cat logs/*/*.txt || true
+      - name: Copy Results from Docker Container
+        run: docker cp purple-hats-container:/app/results ./results
+  
+      - name: Zip Results
+        run: zip -r results.zip ./results
+  
+      - name: Upload Zip File
+        uses: actions/upload-artifact@v2
+        with:
+          name: results
+          path: results.zip
+            
+      - name: Cleanup Docker container
+        run: |
+          # Stop and remove the Docker container
+          docker stop purple-hats-container
+          docker rm purple-hats-container
