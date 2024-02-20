@@ -42,7 +42,7 @@ jobs:
       - name: Check if EMAIL is valid or empty
         run: |
           email="${{ inputs.EMAIL }}"
-          valid_email_regex='^[a-zA-Z0-9.!#$%&*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'
+          valid_email_regex='^[\w\.-]+@[\w\.-]+\.\w+$'
           status="$(if [ -z "$email" ]; then echo "Empty"; elif [[ $email =~ $valid_email_regex ]]; then echo "Valid"; else echo "Invalid"; fi)"
 
           if [[ "$status" == "Invalid" ]]; then
@@ -59,7 +59,7 @@ jobs:
           echo "Using EMAIL: $final_email"
           echo "Using USERNAME: $username"
           # Use $final_email and $username in subsequent steps
-
+      
       - name: Checkout code
         uses: actions/checkout@master
         with:
