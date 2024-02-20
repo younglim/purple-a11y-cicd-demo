@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check if EMAIL is valid or empty
+      - name: Check if email is valid or empty
         run: |
           email="${{ inputs.EMAIL }}"
           echo "Email provided: $email"
@@ -53,7 +53,7 @@ jobs:
           fi
 
         # Proceed with steps if EMAIL is valid or empty
-      - name: Use EMAIL (if provided) or default
+      - name: Use provided name and email or defaults
         run: |
           if [[ -z "${{ inputs.EMAIL }}" ]]; then
             final_email="${{ github.actor }}@users.noreply.github.com"
