@@ -27,13 +27,57 @@ on:
         description: 'Crawler adhere to robots.txt (yes, no)'     
         required: true
         default: 'no'
-        
+      USERNAME:
+        description: "Enter your name (for telemetry purposes)"
+        required: false
+      EMAIL:
+        description: "Enter your email address (for telemetry purposes)"
+        required: false
         
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+YAML
+workflow_dispatch:
+  inputs:
+    EMAIL:
+      description: "Enter your email address (optional)"
+      required: false
+    USERNAME:
+      description: "Enter your username (optional)"
+      required: false
+
+jobs:
+  my_job:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check if EMAIL is valid or empty
+      run: |
+        email="${{ inputs.EMAIL }}"
+        valid_email_regex='^[a-zA-Z0-9.!#$%&*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'
+        status="${{ (if [[ -z "$email" ]]; then echo "Empty" elif [[ $email =~ $valid_email_regex ]]; then echo "Valid" else echo "Invalid"; fi) }}"
+
+        if [[ "$status" == "Invalid" ]]; then
+          echo "Invalid email provided. Workflow failed."
+          exit 1
+        fi
+
+      # Proceed with steps if EMAIL is valid or empty
+    - name: Use EMAIL (if provided) or default
+      run: |
+        # Optionally convert input and actor to uppercase (comment out if not needed)
+        # final_email=$(echo "${{ inputs.EMAIL ?: '' }}" | tr '[a-z]' '[A-Z]')
+        # username=$(echo "${{ inputs.USERNAME ?: '' }}" | tr '[a-z]' '[A-Z]')
+
+        final_email="${{ inputs.EMAIL ?: ${{ github.actor }}@users.noreply.github.com }}"
+        username="${{ inputs.USERNAME ?: ${{ github.actor }} }}"
+
+        echo "Using EMAIL: $final_email"
+        echo "Using USERNAME: $username"
+        # Use $final_email and $username in subsequent steps
+
     - name: Checkout code
       uses: actions/checkout@master
       with:
@@ -48,10 +92,10 @@ jobs:
       # Ensure the Docker container is running before running the next step
       continue-on-error: true
 
-    - name: Run Node CLI command inside the Docker container
+    - name: Start accessibility scan in Docker container
       run: |
         # Execute a webisite crawl
-        docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "${{ github.actor }}:${{ github.actor }}@users.noreply.github.com" -b chromium || true
+        docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "$username:$final_email" -b chromium || true
        
     - name: Print errors
       run: |
