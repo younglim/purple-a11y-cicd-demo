@@ -4,76 +4,109 @@ on:
   workflow_dispatch:
     inputs:
       A11Y_SCAN_URL:
-        description: 'Website URL'     
+        description: 'Website URL'
         required: true
         default: 'https://'
       A11Y_SCANNER:
-        description: 'Scanner (website, sitemap)'     
+        description: 'Scanner (website, sitemap)'
         required: true
         default: 'website'
       A11Y_SCAN_MAX_NUM_PAGES:
-        description: 'Maximum Number of Pages to Scan'     
+        description: 'Maximum Number of Pages to Scan'
         required: true
         default: '10'
       A11Y_SCAN_MAX_CONCURRENCY:
-        description: 'Maximum Number of Concurrent Page Scans'     
+        description: 'Maximum Number of Concurrent Page Scans'
         required: true
         default: '10'
       A11Y_SCAN_SCREENSHOTS:
-        description: 'Include screenshots (screenshots, none)'     
+        description: 'Include screenshots (screenshots, none)'
         required: true
         default: 'screenshots'
       A11Y_SCAN_FOLLOW_ROBOTS:
-        description: 'Crawler adhere to robots.txt (yes, no)'     
+        description: 'Crawler adhere to robots.txt (yes, no)'
         required: true
         default: 'no'
-        
-        
+      USERNAME:
+        description: "Your name (for telemetry purposes)"
+        required: false
+      EMAIL:
+        description: "Email address (for telemetry purposes)"
+        required: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@master
-      with:
-        repository: GovTechSG/purple-a11y
-    
-    - name: Build and run Docker container
-      run: |
-        # Build your Docker image (replace 'purple-hats' and 'Dockerfile' with your image name and Dockerfile path)
-        docker build -t purple-hats .
-        # Run the Docker container (adjust any options as needed)
-        docker run -dit --name purple-hats-container purple-hats
-      # Ensure the Docker container is running before running the next step
-      continue-on-error: true
+      - name: Check if email is valid or empty
+        run: |
+          email="${{ inputs.EMAIL }}"
+          echo "Email provided: $email"
+          valid_email_regex='^.+@.+\..+$'
+          echo "Validating with regex: $valid_email_regex"
+          status="$(if [ -z "$email" ]; then echo "Empty"; elif [[ $email =~ $valid_email_regex ]]; then echo "Valid"; else echo "Invalid"; fi)"
 
-    - name: Run Node CLI command inside the Docker container
-      run: |
-        # Execute a webisite crawl
-        docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "${{ github.actor }}:${{ github.actor }}@users.noreply.github.com" -b chromium || true
-       
-    - name: Print errors
-      run: |
-        docker exec purple-hats-container cat errors.txt || true
-      
-    - name: Print logs
-      run: |
-        docker exec purple-hats-container cat logs/*/*.txt || true
-    - name: Copy Results from Docker Container
-      run: docker cp purple-hats-container:/app/results ./results
+          if [[ "$status" == "Invalid" ]]; then
+            echo "Invalid email provided. Workflow failed."
+            exit 1
+          fi
 
-    - name: Zip Results
-      run: zip -r results.zip ./results
-
-    - name: Upload Zip File
-      uses: actions/upload-artifact@v2
-      with:
-        name: results
-        path: results.zip
+        # Proceed with steps if EMAIL is valid or empty
+      - name: Use provided name and email or defaults
+        run: |
+          if [[ -z "${{ inputs.EMAIL }}" ]]; then
+            final_email="${{ github.actor }}@users.noreply.github.com"
+          else
+            final_email="${{ inputs.EMAIL }}"
+          fi
           
-    - name: Cleanup Docker container
-      run: |
-        # Stop and remove the Docker container
-        docker stop purple-hats-container
-        docker rm purple-hats-container
+          username="${{ inputs.USERNAME || github.actor }}"
+
+          echo "final_email=$final_email" >> $GITHUB_ENV
+          echo "username=$username" >> $GITHUB_ENV
+          # Use $final_email and $username in subsequent steps
+      
+      - name: Checkout code
+        uses: actions/checkout@master
+        with:
+          repository: GovTechSG/purple-a11y
+      
+      - name: Build and run Docker container
+        run: |
+          # Build your Docker image (replace 'purple-hats' and 'Dockerfile' with your image name and Dockerfile path)
+          docker build -t purple-hats .
+          # Run the Docker container (adjust any options as needed)
+          docker run -dit --name purple-hats-container purple-hats
+        # Ensure the Docker container is running before running the next step
+        continue-on-error: true
+  
+      - name: Start accessibility scan in Docker container
+        run: |
+          # Execute a webisite crawl
+          docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "${{ env.username }}:${{ env.final_email }}" -b chromium || true
+         
+      - name: Print errors
+        run: |
+          docker exec purple-hats-container cat errors.txt || true
+        
+      - name: Print logs
+        run: |
+          docker exec purple-hats-container cat logs/*/*.txt || true
+      - name: Copy Results from Docker Container
+        run: docker cp purple-hats-container:/app/results ./results
+  
+      - name: Zip Results
+        run: zip -r results.zip ./results
+  
+      - name: Upload Zip File
+        uses: actions/upload-artifact@v2
+        with:
+          name: results
+          path: results.zip
+            
+      - name: Cleanup Docker container
+        run: |
+          # Stop and remove the Docker container
+          docker stop purple-hats-container
+          docker rm purple-hats-container
