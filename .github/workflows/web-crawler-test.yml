@@ -58,8 +58,8 @@ jobs:
           final_email="${{ inputs.EMAIL || github.actor }}@users.noreply.github.com"
           username="${{ inputs.USERNAME || github.actor }}"
 
-          echo "Using EMAIL: $final_email"
-          echo "Using USERNAME: $username"
+          echo "final_email=$final_email" >> $GITHUB_ENV
+          echo "username=$username" >> $GITHUB_ENV
           # Use $final_email and $username in subsequent steps
       
       - name: Checkout code
@@ -79,7 +79,7 @@ jobs:
       - name: Start accessibility scan in Docker container
         run: |
           # Execute a webisite crawl
-          docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "$username:$final_email" -b chromium || true
+          docker exec purple-hats-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "${{ env.username }}:${{ env.final_email }}" -b chromium || true
          
       - name: Print errors
         run: |
