@@ -39,20 +39,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-YAML
-workflow_dispatch:
-  inputs:
-    EMAIL:
-      description: "Enter your email address (optional)"
-      required: false
-    USERNAME:
-      description: "Enter your username (optional)"
-      required: false
-
-jobs:
-  my_job:
-    runs-on: ubuntu-latest
-    steps:
     - name: Check if EMAIL is valid or empty
       run: |
         email="${{ inputs.EMAIL }}"
