@@ -55,12 +55,12 @@ jobs:
         # Proceed with steps if EMAIL is valid or empty
       - name: Use EMAIL (if provided) or default
         run: |
-          final_email: |
-            if [[ -z "${{ inputs.EMAIL }}" ]]; then
-              echo "${{ github.actor }}@users.noreply.github.com"
-            else
-              echo "${{ inputs.EMAIL }}"
-            fi
+          if [[ -z "${{ inputs.EMAIL }}" ]]; then
+            final_email="${{ github.actor }}@users.noreply.github.com"
+          else
+            final_email="${{ inputs.EMAIL }}"
+          fi
+          
           username="${{ inputs.USERNAME || github.actor }}"
 
           echo "final_email=$final_email" >> $GITHUB_ENV
