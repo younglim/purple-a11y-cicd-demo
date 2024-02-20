@@ -1,4 +1,4 @@
-# purple-hats-cicd-demo
+# purple-a11y-cicd-demo
 Sample CI/CD Templates for Purple A11y
 
 1. Clone the repository.
