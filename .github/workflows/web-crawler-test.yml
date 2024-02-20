@@ -42,7 +42,9 @@ jobs:
       - name: Check if EMAIL is valid or empty
         run: |
           email="${{ inputs.EMAIL }}"
-          valid_email_regex='^[\w\.-]+@[\w\.-]+\.\w+$'
+          echo "Email provided: $email"
+          valid_email_regex='^.+@.+\..+$'
+          echo "Validating with regex: $valid_email_regex"
           status="$(if [ -z "$email" ]; then echo "Empty"; elif [[ $email =~ $valid_email_regex ]]; then echo "Valid"; else echo "Invalid"; fi)"
 
           if [[ "$status" == "Invalid" ]]; then
