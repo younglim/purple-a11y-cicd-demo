@@ -36,9 +36,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
-      labels:
-      - linux
+    runs-on: { self-hosted, Linux }
 
     steps:
       - name: Check if email is valid or empty
