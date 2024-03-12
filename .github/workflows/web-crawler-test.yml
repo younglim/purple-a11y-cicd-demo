@@ -36,8 +36,8 @@ on:
 
 jobs:
   build:
-    runs-on: { self-hosted, Linux }
-
+    runs-on: self-hosted  # This runs on any self-hosted runner
+ 
     steps:
       - name: Check if email is valid or empty
         run: |
