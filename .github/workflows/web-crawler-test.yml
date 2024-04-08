@@ -3,6 +3,10 @@ name: Build Run and Test Website Crawl
 on:
   workflow_dispatch:
     inputs:
+      A11Y_ENGINE_BRANCH:
+        description: 'Purple A11y Branch (master, other)'
+        required: true
+        default: 'master'
       A11Y_SCAN_URL:
         description: 'Website URL'
         required: true
@@ -70,8 +74,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@master
         with:
-          repository: GovTechSG/purple-a11y
-      
+          repository: "GovTechSG/purple-a11y"
+          ref: "${{ github.event.inputs.A11Y_ENGINE_BRANCH }}"
+          
       - name: Build and run Docker container
         run: |
           # Build your Docker image (replace 'purple-a11y' and 'Dockerfile' with your image name and Dockerfile path)
