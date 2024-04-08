@@ -41,7 +41,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    env:
+      PURPLE_A11Y_VERBOSE: true
+  
     steps:
       - name: Check if email is valid or empty
         run: |
