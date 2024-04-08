@@ -41,9 +41,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      PURPLE_A11Y_VERBOSE: true
-  
+
     steps:
       - name: Check if email is valid or empty
         run: |
@@ -91,7 +89,7 @@ jobs:
       - name: Start accessibility scan in Docker container
         run: |
           # Execute a webisite crawl
-          docker exec purple-a11y-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "${{ env.username }}:${{ env.final_email }}" -b chromium || true
+          docker exec -e PURPLE_A11Y_VERBOSE=true purple-a11y-container node cli -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -k "${{ env.username }}:${{ env.final_email }}" -b chromium || true
          
       - name: Print errors
         run: |
