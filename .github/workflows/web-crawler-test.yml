@@ -43,6 +43,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Get Public IP Address
+        run:
+          curl https://ipinfo.io
+      
       - name: Check if email is valid or empty
         run: |
           email="${{ inputs.EMAIL }}"
