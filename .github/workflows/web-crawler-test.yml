@@ -31,7 +31,7 @@ on:
         description: 'Crawler adhere to robots.txt (yes, no)'
         required: true
         default: 'no'
-      A11Y_SCAN_STRATEGY
+      A11Y_SCAN_STRATEGY:
         description: 'Crawler adhere to pages matching exact hostname or same parent domain (hostname, same-domain)'
         required: true
         default: 'same-domain'
