@@ -90,7 +90,7 @@ jobs:
           # Build your Docker image (replace 'oobee' and 'Dockerfile' with your image name and Dockerfile path)
           docker build -t oobee .
           # Run the Docker container (adjust any options as needed)
-          docker run -dit --name oobee-container oobee --add-host=docs.google.com:0.0.0.0 --add-host=assets.wogaa.sg:0.0.0.0 \
+          docker run -dit --name oobee-container oobee --add-host=docs.google.com:0.0.0.0 --add-host=assets.wogaa.sg:0.0.0.0
         # Ensure the Docker container is running before running the next step
         continue-on-error: true
   
