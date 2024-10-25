@@ -1,4 +1,4 @@
-# purple-a11y-cicd-demo
+# oobee-cicd-demo
 Sample CI/CD Templates to run [Oobee](https://github.com/GovTechSG/oobee).
 
 Oobee (formerly known as Purple A11y) is a customisable, automated accessibility testing tool that allows software development teams to assess whether their products are user-friendly to persons with disabilities (PWDs).
