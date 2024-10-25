@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       A11Y_ENGINE_BRANCH:
-        description: 'Purple A11y Branch (master, other)'
+        description: 'Oobee Branch (master, other)'
         required: true
         default: 'master'
       A11Y_SCAN_URL:
@@ -82,32 +82,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@master
         with:
-          repository: "GovTechSG/purple-a11y"
+          repository: "GovTechSG/oobee"
           ref: "${{ github.event.inputs.A11Y_ENGINE_BRANCH }}"
           
       - name: Build and run Docker container
         run: |
-          # Build your Docker image (replace 'purple-a11y' and 'Dockerfile' with your image name and Dockerfile path)
-          docker build -t purple-a11y .
+          # Build your Docker image (replace 'oobee' and 'Dockerfile' with your image name and Dockerfile path)
+          docker build -t oobee .
           # Run the Docker container (adjust any options as needed)
-          docker run -dit --name purple-a11y-container purple-a11y
+          docker run -dit --name oobee-container oobee --add-host=docs.google.com:0.0.0.0 --add-host=assets.wogaa.sg:0.0.0.0 \
         # Ensure the Docker container is running before running the next step
         continue-on-error: true
   
       - name: Start accessibility scan in Docker container
         run: |
           # Execute a webisite crawl
-          docker exec -e PURPLE_A11Y_VERBOSE=true purple-a11y-container npm run cli -- -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -s "${{ github.event.inputs.A11Y_SCAN_STRATEGY}}" -k "${{ env.username }}:${{ env.final_email }}" -b chromium || true
+          docker exec -e PURPLE_A11Y_VERBOSE=true oobee-container npm run cli -- -c "${{ github.event.inputs.A11Y_SCANNER }}" -u "${{ github.event.inputs.A11Y_SCAN_URL }}" -p "${{ github.event.inputs.A11Y_SCAN_MAX_NUM_PAGES }}" -t "${{ github.event.inputs.A11Y_SCAN_MAX_CONCURRENCY }}" -a "${{ github.event.inputs.A11Y_SCAN_SCREENSHOTS }}" -r "${{ github.event.inputs.A11Y_SCAN_FOLLOW_ROBOTS }}" -s "${{ github.event.inputs.A11Y_SCAN_STRATEGY}}" -k "${{ env.username }}:${{ env.final_email }}" -b chromium || true
          
       - name: Print errors
         run: |
-          docker exec purple-a11y-container cat errors.txt || true
+          docker exec oobee-container cat errors.txt || true
         
       - name: Print logs
         run: |
-          docker exec purple-a11y-container cat logs/*/*.txt || true
+          docker exec oobee-container cat logs/*/*.txt || true
       - name: Copy Results from Docker Container
-        run: docker cp purple-a11y-container:/app/results ./results
+        run: docker cp oobee-container:/app/results ./results
   
       - name: Zip Results
         run: zip -r results.zip ./results
@@ -121,5 +121,5 @@ jobs:
       - name: Cleanup Docker container
         run: |
           # Stop and remove the Docker container
-          docker stop purple-a11y-container
-          docker rm purple-a11y-container
+          docker stop oobee-container
+          docker rm oobee-container
